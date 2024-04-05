@@ -1,55 +1,90 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import datediff, expr, col, to_date
-from pyspark.sql.types import StructType, StructField, IntegerType, StringType, TimestampType
+from pyspark.sql import SparkSession, Window
+from pyspark.sql.functions import current_date, avg
+from pyspark.sql.types import StringType, StructType, IntegerType, StructField, ArrayType
 
 
-def spark_session():
-    spark = SparkSession.builder.appName('spark-assignment').getOrCreate()
+def create_session():
+    spark = SparkSession.builder.master("local[*]").appName("Krishna").getOrCreate()
     return spark
 
 
-log_data = [
-    (1, 101, 'login', '2023-09-05 08:30:00'),
-    (2, 102, 'click', '2023-09-06 12:45:00'),
-    (3, 101, 'click', '2023-09-07 14:15:00'),
-    (4, 103, 'login', '2023-09-08 09:00:00'),
-    (5, 102, 'logout', '2023-09-09 17:30:00'),
-    (6, 101, 'click', '2023-09-10 11:20:00'),
-    (7, 103, 'click', '2023-09-11 10:15:00'),
-    (8, 102, 'click', '2023-09-12 13:10:00')
-]
-log_schema = StructType([
-    StructField("log id", IntegerType(), True),
-    StructField("user$id", IntegerType(), True),
-    StructField("action", StringType(), True),
-    StructField("timestamp", StringType(), True)
+data1 = ((11, "james", "D101", "ny", 9000, 34),
+         (12, "michel", "D101", "ny", 8900, 32),
+         (13, "robert", "D102", "ca", 7900, 29),
+         (14, "scott", "D103", "ca", 8000, 36),
+         (15, "jen", "D102", "ny", 9500, 38),
+         (16, "jeff", "D103", "uk", 9100, 35),
+         (17, "maria", "D101", "ny", 7900, 40))
+
+schema1 = StructType([
+    StructField("employee_id", IntegerType(), True),
+    StructField("employee_name", StringType(), True),
+    StructField("department", StringType(), True),
+    StructField("State", StringType(), True),
+    StructField("salary", IntegerType(), True),
+    StructField("Age", IntegerType(), True)
+])
+
+data2 = (("D101", "sales"),
+         ("D102", "finance"),
+         ("D103", "marketing"),
+         ("D104", "hr"),
+         ("D105", "support"))
+schema2 = StructType([
+    StructField("dept_id", StringType(), True),
+    StructField("dept_name", StringType(), True)
+])
+
+data3 = (("ny", "newyork"),
+         ("ca", "California"),
+         ("uk", "Russia"))
+
+schema3 = StructType([
+    StructField("country_code", StringType(), True),
+    StructField("country_name", StringType(), True)
 ])
 
 
 def create_df(spark, data, schema):
-    df = spark.createDataFrame(data, schema)
-    df = df.withColumn("timestamp", col("timestamp").cast(TimestampType()))
-    return df
+    new = spark.createDataFrame(data=data, schema=schema)
+    return new
 
 
-# 2.Column names should be log_id, user_id, user_activity, time_stamp using dynamic function
-def updateColumnName(dataframe):
-    count = 0
-    new_column_names = ["log_id", "user_id", "user_activity", "time_stamp"]
-    for column in dataframe.columns:
-        dataframe = dataframe.withColumnRenamed(column, new_column_names[count])
-        count += 1
-    return dataframe
+#
+def show_avg_salary(df):
+    win_spec = Window.partitionBy("department")
+    df.withColumn("avg", avg(col=("salary")).over(win_spec)).select("department", "avg").distinct().show()
+
+def employee_with_m(df1,df2):
+    employee_with_m = df1.filter(df1.employee_name.startswith('m'))
+    name_starts_with_m = employee_with_m.join(df2, employee_with_m["department"] == df2["dept_id"],
+                                              "inner").select(employee_with_m.employee_name, df2.dept_name)
+    return name_starts_with_m
+
+def bonus_multiplication(df):
+    bonus_df = df.withColumn("bonus", df.salary * 2)
+    return bonus_df
+
+def reorder(df):
+    ordered_df = df.select("employee_id", "employee_name", "salary", "State", "Age", "department")
+    return ordered_df
 
 
-# 3. Write a query to calculate the number of actions performed by each user in the last 7 days
-def action_performed_last_7(df):
-    df_filtered = df.filter(datediff(expr("date('2023-09-05')"), expr("date(timestamp)")) <= 7)
-    actions_performed = df_filtered.groupby("user_id").count()
-    return actions_performed
+def inner_join(df1,df2):
+    return df1.join(df2,df1.department==df2.dept_id ,"inner")
+def left_join(df1,df2):
+    return df1.join(df2,df1.department==df2.dept_id ,"left")
+def right_join(df1,df2):
+    return df1.join(df2,df1.department==df2.dept_id ,"right")
+
+def country_name_replace(employee_df,country_df):
+    employee_country_df = employee_df.join(country_df, employee_df.State == country_df.country_code).drop(
+        "country_code", "state").select("employee_id", "employee_name", "department", "country_name", "salary", "Age")
+    return employee_country_df
+
+def lower_column(df):
+    for column in  df.columns:
+        df=df.withColumnRenamed(column,column.lower())
+    return df.withColumn("load_date",current_date())
 
 
-# 4. Convert the time stamp column to the login_date column with YYYY-MM-DD format with date type as its data type
-def convert_timestamp_login_date(df):
-    login_date_df = df.select("log_id", "user_id", "user_activity", to_date("time_stamp").alias("login_date"))
-    return login_date_df
