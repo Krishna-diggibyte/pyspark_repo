@@ -58,3 +58,30 @@
 8. **Create Year, Month, and Day Columns:**
    - From the 'load_date' column, three new columns ('year', 'month', 'day') have been generated to extract the corresponding date components.
    - These columns facilitate further analysis and filtering predicated on specific date attributes.
+
+## Question 5:
+1. **Create DataFrames:**
+   - Three DataFrames, namely `employee_df`, `department_df`, and `country_df`, have been created with custom schemas defined dynamically.
+   - Each DataFrame corresponds to employee data, department data, and country data, respectively.
+2. **Average Salary of Each Department:**
+   - The average salary of each department has been calculated using the `employee_df` DataFrame.
+   - This analysis provides insights into the salary distribution across different departments.
+3. **Employees Whose Names Start with 'M':**
+   - Employees whose names start with the letter 'M' have been identified along with their respective department names.
+   - This filter operation helps in finding specific employee records based on name criteria.
+4. **Bonus Calculation:**
+   - A new column named 'bonus' has been added to the `employee_df` DataFrame by multiplying the employee's salary by 2.
+   - This column represents the bonus amount for each employee.
+5. **Reordering Column Names:**
+   - The column names of the `employee_df` DataFrame have been reordered as per the specified sequence.
+   - This operation facilitates better data organization and readability.
+6. **Join Operations:**
+   - Inner join, left join, and right join operations have been performed dynamically between the `employee_df` and `department_df` DataFrames.
+   - Each join operation yields different results based on the specified join type.
+7. **Update State to Country Name:**
+   - The 'State' column in the `employee_df` DataFrame has been updated to display country names instead.
+   - This transformation enhances the clarity of geographical information in the DataFrame.
+8. **Lowercase Column Names and Add Load Date:**
+   - All column names in the DataFrame resulting from Question 7 have been converted to lowercase.
+   - Additionally, a new column named 'load_date' has been added with the current date, denoting when the data was loaded.
+   - These modifications ensure consistency in column naming conventions and enable tracking of data loading timestamps.
