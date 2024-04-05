@@ -1,55 +1,66 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import datediff, expr, col, to_date
-from pyspark.sql.types import StructType, StructField, IntegerType, StringType, TimestampType
+from pyspark.sql.functions import explode, current_date, year, month, day, posexplode, explode_outer, posexplode_outer
+from pyspark.sql.types import StringType, StructType, IntegerType, StructField, ArrayType
 
-
-def spark_session():
-    spark = SparkSession.builder.appName('spark-assignment').getOrCreate()
+def create_session():
+    spark=SparkSession.builder.master("local[*]").appName("Krishna").getOrCreate()
     return spark
 
 
-log_data = [
-    (1, 101, 'login', '2023-09-05 08:30:00'),
-    (2, 102, 'click', '2023-09-06 12:45:00'),
-    (3, 101, 'click', '2023-09-07 14:15:00'),
-    (4, 103, 'login', '2023-09-08 09:00:00'),
-    (5, 102, 'logout', '2023-09-09 17:30:00'),
-    (6, 101, 'click', '2023-09-10 11:20:00'),
-    (7, 103, 'click', '2023-09-11 10:15:00'),
-    (8, 102, 'click', '2023-09-12 13:10:00')
-]
-log_schema = StructType([
-    StructField("log id", IntegerType(), True),
-    StructField("user$id", IntegerType(), True),
-    StructField("action", StringType(), True),
-    StructField("timestamp", StringType(), True)
+path="../../resource/nested_json_file.json"
+
+schema=StructType([
+    StructField("id",IntegerType(),True),
+    StructField("properties",StructType([
+        StructField("name",StringType(),True),
+        StructField("storeSize",StringType(),True)
+    ]),True),
+    StructField("employees",ArrayType(StructType([
+        StructField("empId",IntegerType(),True),
+        StructField("empName",StringType(),True)
+    ]),True),True)
 ])
-
-
-def create_df(spark, data, schema):
-    df = spark.createDataFrame(data, schema)
-    df = df.withColumn("timestamp", col("timestamp").cast(TimestampType()))
+def read_file(spark,path,schema):
+    df=spark.read.json(path,schema=schema,multiLine=True)
     return df
 
+def flat_df(df):
+    temp_flat_df = df.withColumn("employee", explode("employees")).drop("employees")
 
-# 2.Column names should be log_id, user_id, user_activity, time_stamp using dynamic function
-def updateColumnName(dataframe):
-    count = 0
-    new_column_names = ["log_id", "user_id", "user_activity", "time_stamp"]
-    for column in dataframe.columns:
-        dataframe = dataframe.withColumnRenamed(column, new_column_names[count])
-        count += 1
-    return dataframe
+    flatted_df = temp_flat_df.withColumn("empId", temp_flat_df.employee.empId).withColumn("empName",
+                                                                                          temp_flat_df.employee.empName) \
+        .withColumn("name", temp_flat_df.properties['name']).withColumn("storeSize",
+                                                                        temp_flat_df.properties['storeSize']).drop(
+        "employee", "properties")
+    return flatted_df
 
+def explode_display(read_df):
+    read_df.select(read_df.id, read_df.properties, explode(read_df.employees)).show()
+def explode_outer_display(read_df):
+    read_df.select(read_df.id, read_df.properties, explode_outer(read_df.employees)).show()
+def posexplode_display(read_df):
+    read_df.select(read_df.id, read_df.properties, posexplode(read_df.employees)).show()
+def posexplode_outer_display(read_df):
+    read_df.select(read_df.id, read_df.properties, posexplode_outer(read_df.employees)).show()
 
-# 3. Write a query to calculate the number of actions performed by each user in the last 7 days
-def action_performed_last_7(df):
-    df_filtered = df.filter(datediff(expr("date('2023-09-05')"), expr("date(timestamp)")) <= 7)
-    actions_performed = df_filtered.groupby("user_id").count()
-    return actions_performed
+def check_id(df):
+    df.filter(df.id == "0001").show()
 
+def convert_lower(txt):
+    new=""
+    for i in txt:
+        if i.islower():
+            new=new+"".join(i)
+        else:
+            temp=f"_{i}"
+            new=new+"".join(temp.lower())
+    return new
 
-# 4. Convert the time stamp column to the login_date column with YYYY-MM-DD format with date type as its data type
-def convert_timestamp_login_date(df):
-    login_date_df = df.select("log_id", "user_id", "user_activity", to_date("time_stamp").alias("login_date"))
-    return login_date_df
+def add_current_date(df):
+    date_df = df.withColumn("load_date", current_date())
+    return date_df
+
+def add_year_month(date_df):
+    result = date_df.withColumn("year", year(date_df["load_date"])).withColumn("month", month(
+        date_df["load_date"])).withColumn("day", day(date_df["load_date"]))
+    return result
