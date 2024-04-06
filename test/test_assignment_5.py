@@ -116,11 +116,12 @@ class TestAssignment5(unittest.TestCase):
 
         self.assertEqual(test_df.collect(),expected_df.collect())
 
+
     def test_left_join(self):
         emp_df = create_df(self.spark, data1, schema1)
         dep_df2 = create_df(self.spark, data2, schema2)
 
-        test_df=inner_join(emp_df,dep_df2)
+        test_df=left_join(emp_df,dep_df2)
         expected_df=emp_df.join(dep_df2,emp_df.department==dep_df2.dept_id ,"left")
 
         self.assertEqual(test_df.collect(),expected_df.collect())
@@ -129,7 +130,7 @@ class TestAssignment5(unittest.TestCase):
         emp_df = create_df(self.spark, data1, schema1)
         dep_df2 = create_df(self.spark, data2, schema2)
 
-        test_df=inner_join(emp_df,dep_df2)
+        test_df=right_join(emp_df,dep_df2)
         expected_df=emp_df.join(dep_df2,emp_df.department==dep_df2.dept_id ,"right")
 
         self.assertEqual(test_df.collect(),expected_df.collect())
