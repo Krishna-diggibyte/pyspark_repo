@@ -50,10 +50,9 @@ def create_df(spark, data, schema):
     return new
 
 
-#
 def show_avg_salary(df):
     win_spec = Window.partitionBy("department")
-    df.withColumn("avg", avg(col=("salary")).over(win_spec)).select("department", "avg").distinct().show()
+    return df.withColumn("avg", avg(col=("salary")).over(win_spec)).select("department", "avg").distinct()
 
 def employee_with_m(df1,df2):
     employee_with_m = df1.filter(df1.employee_name.startswith('m'))
