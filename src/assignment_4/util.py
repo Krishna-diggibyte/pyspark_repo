@@ -35,16 +35,16 @@ def flat_df(df):
     return flatted_df
 
 def explode_display(read_df):
-    read_df.select(read_df.id, read_df.properties, explode(read_df.employees)).show()
+    return read_df.select(read_df.id, read_df.properties, explode(read_df.employees))
 def explode_outer_display(read_df):
-    read_df.select(read_df.id, read_df.properties, explode_outer(read_df.employees)).show()
+    return read_df.select(read_df.id, read_df.properties, explode_outer(read_df.employees))
 def posexplode_display(read_df):
-    read_df.select(read_df.id, read_df.properties, posexplode(read_df.employees)).show()
+    return read_df.select(read_df.id, read_df.properties, posexplode(read_df.employees))
 def posexplode_outer_display(read_df):
-    read_df.select(read_df.id, read_df.properties, posexplode_outer(read_df.employees)).show()
+    return read_df.select(read_df.id, read_df.properties, posexplode_outer(read_df.employees))
 
 def check_id(df):
-    df.filter(df.id == "0001").show()
+    return df.filter(df.id == "0001")
 
 def convert_lower(txt):
     new=""
@@ -61,6 +61,5 @@ def add_current_date(df):
     return date_df
 
 def add_year_month(date_df):
-    result = date_df.withColumn("year", year(date_df["load_date"])).withColumn("month", month(
-        date_df["load_date"])).withColumn("day", day(date_df["load_date"]))
+    result = date_df.withColumn("year", year(date_df["load_date"])).withColumn("month", month(date_df["load_date"])).withColumn("day", day(date_df["load_date"]))
     return result
