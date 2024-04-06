@@ -47,18 +47,27 @@ class TestAssignment1(unittest.TestCase):
         self.assertEqual(test_product_df.count(), 5)
 
     def test_find_iphone(self):
+        test_purchase_data = [(1, "iphone13"),
+                              (1, "dell i5 core"),
+                              (2, "iphone13"),
+                              (2, "dell i5 core"),
+                              (3, "iphone13"),
+                              (3, "dell i5 core"),
+                              (1, "dell i3 core"),
+                              (1, "hp i5 core"),
+                              (1, "iphone14"),
+                              (3, "iphone14"),
+                              (4, "iphone13")]
+
         test_purchase_schema = StructType([
             StructField("customer", IntegerType(), True),
-            StructField("product_name", StringType(), True)
+            StructField("product_model", StringType(), True)
         ])
 
-        test_purchase_data = [(1, "iphone13"), (1, "dell i5 core"), (2, "iphone13"), (2, "dell i5 core"),
-                              (3, "iphone13"), (3, "dell i5 core"), (1, "dell i3 core"), (1, "hp i5 core"),
-                              (1, "iphone14"), (3, "iphone14"), (4, "iphone13")]
+        test_purchase_df=create_dataframe(self.spark,test_purchase_data,test_purchase_schema)
 
-        test_purchase_df = create_dataframe(self.spark, test_purchase_data, test_purchase_schema)
 
-        result_df = find_in_df(test_purchase_df, "product_name", "iphone13")
+        result_df = find_iphone(test_purchase_df, "product_model", "iphone13")
 
         expected_schema = StructType([
             StructField("customer", IntegerType(), True),
@@ -76,51 +85,73 @@ class TestAssignment1(unittest.TestCase):
 
         self.assertEqual(sorted(result_df.collect()), sorted(expected_df.collect()))
 
-    def test_find_iphone14(self):
+    def test_upgrade(self):
+        test_purchase_data = [(1, "iphone13"),
+                              (1, "dell i5 core"),
+                              (2, "iphone13"),
+                              (2, "dell i5 core"),
+                              (3, "iphone13"),
+                              (3, "dell i5 core"),
+                              (1, "dell i3 core"),
+                              (1, "hp i5 core"),
+                              (1, "iphone14"),
+                              (3, "iphone14"),
+                              (4, "iphone13")]
+
         test_purchase_schema = StructType([
             StructField("customer", IntegerType(), True),
             StructField("product_model", StringType(), True)
         ])
 
-        test_purchase_data = [(1, "iphone13"), (1, "dell i5 core"), (2, "iphone13"), (2, "dell i5 core"),
-                              (3, "iphone13"), (3, "dell i5 core"), (1, "dell i3 core"), (1, "hp i5 core"),
-                              (1, "iphone14"), (3, "iphone14"), (4, "iphone13")]
-
         test_purchase_df = create_dataframe(self.spark, test_purchase_data, test_purchase_schema)
 
-        only_iphone13 = find_in_df(test_purchase_df, "product_model", "iphone13")
+        only_iphone13 = find_iphone(test_purchase_df, "product_model", "iphone13")
+        only_iphone14 = find_iphone(test_purchase_df, "product_model", "iphone14")
 
-        result_df = find_iphone14(test_purchase_df, only_iphone13)
+        result_df = upgrade(only_iphone13, only_iphone14)
 
         expected_schema = StructType([
-            StructField("customer", IntegerType(), True),
-            StructField("product_model", StringType(), True)
+            StructField("customer", IntegerType(), True)
         ])
         expected_data = [
-            (1, "iphone14"),
-            (3, "iphone14"),
+            (1,),
+            (3,),
         ]
         expected_df = create_dataframe(self.spark, expected_data, expected_schema)
         self.assertEqual(result_df.collect(), expected_df.collect())
 
-    def test_find_bought_all(self):
+    def test_bought_all(self):
+        test_purchase_data = [(1, "iphone13"),
+                              (1, "dell i5 core"),
+                              (2, "iphone13"),
+                              (2, "dell i5 core"),
+                              (3, "iphone13"),
+                              (3, "dell i5 core"),
+                              (1, "dell i3 core"),
+                              (1, "hp i5 core"),
+                              (1, "iphone14"),
+                              (3, "iphone14"),
+                              (4, "iphone13")]
+
         test_purchase_schema = StructType([
             StructField("customer", IntegerType(), True),
             StructField("product_model", StringType(), True)
         ])
-        test_purchase_data = [(1, "iphone13"), (1, "dell i5 core"), (2, "iphone13"), (2, "dell i5 core"),
-                         (3, "iphone13"), (3, "dell i5 core"), (1, "dell i3 core"), (1, "hp i5 core"),
-                         (1, "iphone14"), (3, "iphone14"), (4, "iphone13")]
+
+        test_product_data = [("iphone13",),
+                             ("dell i5 core",),
+                             ("dell i3 core",),
+                             ("hp i5 core",),
+                             ("iphone14",)]
 
         test_product_schema = StructType([
-            StructField("product_model", StringType(), True)
+            StructField("product_name", StringType(), True)
         ])
-        test_product_data = [("iphone13",), ("dell i5 core",), ("dell i3 core",), ("hp i5 core",), ("iphone14",)]
 
         test_purchase_df = create_dataframe(self.spark, test_purchase_data, test_purchase_schema)
         test_product_df = create_dataframe(self.spark, test_product_data, test_product_schema)
 
-        result_df = find_bought_all(test_purchase_df, test_product_df)
+        result_df = bought_all(test_purchase_df, test_product_df)
         expected_schema = StructType([StructField("customer", IntegerType(), True)])
         expected_data = [
             (1,)
