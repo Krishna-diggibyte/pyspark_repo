@@ -18,7 +18,7 @@ country_df.show()
 
 # 2. Find avg salary of each department
 logging.info("2. Find avg salary of each department")
-show_avg_salary(employee_df)
+show_avg_salary(employee_df).show()
 
 # 3. Find the employee’s name and department name whose name starts with ‘m’
 name_starts_with_m = employee_with_m(employee_df, department_df)
