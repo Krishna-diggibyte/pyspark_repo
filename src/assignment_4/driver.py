@@ -28,18 +28,18 @@ logging.info(f"\nAfter Flatten: {flatted_df.count()}")
 logging.info("\n4. Differentiate the difference using explode, explode outer, posexplode functions")
 # 4. Differentiate the difference using explode, explode outer, posexplode functions
 logging.info("explode")
-explode_display(read_df)
+explode_display(read_df).show()
 logging.info("explode_outer")
-explode_outer_display(read_df)
+explode_outer_display(read_df).show()
 logging.info("pos explode")
-posexplode_display(read_df)
+posexplode_display(read_df).show()
 logging.info("pos explode outer")
-posexplode_outer_display(read_df)
+posexplode_outer_display(read_df).show()
 
 
 # 5. Filter the id which is equal to 0001
 logging.info("5. Filter the id which is equal to 0001")
-check_id(flatted_df)
+check_id(flatted_df).show()
 
 # 6. convert the column names from camel case to snake case
 logging.info("6. convert the column names from camel case to snake case")
